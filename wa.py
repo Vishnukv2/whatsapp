@@ -216,7 +216,7 @@ def run_ngrok():
         # Handle the error, if needed
         pass
 
-if _name_ == "_main_":
+if __name__ == "__main__":
     # Start ngrok in a separate thread
     ngrok_thread = threading.Thread(target=run_ngrok)
     ngrok_thread.start()
