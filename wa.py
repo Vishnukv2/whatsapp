@@ -13,7 +13,7 @@ import time
 import os
 import ngrok
 from dotenv import load_dotenv
-app = Flask(_name_)
+app = Flask(__name__)
 
 
 load_dotenv()
