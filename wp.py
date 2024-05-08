@@ -18,7 +18,8 @@ app = Flask(__name__)
 load_dotenv()
 
 ACCESS_TOKEN = os.getenv("access_token")
-PHONE_NUMBER_ID = os.getenv("phone_number_id")
+PHONE_NUMBER_ID_1 = os.getenv("phone_number_id_1")
+PHONE_NUMBER_ID_2 = os.getenv("phone_number_id_2")
 VERSION = "v19.0"
 # Send a custom text WhatsApp message asynchronously
 async def send_message(recipient, data):
@@ -28,7 +29,7 @@ async def send_message(recipient, data):
     }
 
     async with aiohttp.ClientSession() as session:
-        url = f"https://graph.facebook.com/{VERSION}/{PHONE_NUMBER_ID}/messages"
+        url = f"https://graph.facebook.com/{VERSION}/{PHONE_NUMBER_ID_1}/messages"
         try:
             async with session.post(url, data=data, headers=headers) as response:
                 if response.status == 200:
@@ -100,7 +101,7 @@ def send_messages(data):
         "Authorization": f"Bearer {ACCESS_TOKEN}",
     }
 
-    url = f"https://graph.facebook.com/{VERSION}/{PHONE_NUMBER_ID}/messages"
+    url = f"https://graph.facebook.com/{VERSION}/{PHONE_NUMBER_ID_2}/messages"
 
     try:
         response = requests.post(url, data=data, headers=headers, timeout=10)
