@@ -206,7 +206,7 @@ def webhook_post():
         return jsonify({"status": "error", "message": "Invalid JSON provided"}), 400
 
 import subprocess
-
+import threading
 def run_ngrok():
     try:
         while True:
@@ -214,8 +214,12 @@ def run_ngrok():
     except subprocess.CalledProcessError as e:
         print(f"An error occurred: {e}")
         # Handle the error, if needed
-        pass     
+        pass
 
 if __name__ == "__main__":
+    # Start ngrok in a separate thread
+    ngrok_thread = threading.Thread(target=run_ngrok)
+    ngrok_thread.start()
+
+    # Start Flask app
     app.run(port=8000, debug=False)
-    run_ngrok()
