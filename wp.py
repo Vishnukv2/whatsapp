@@ -208,7 +208,7 @@ def webhook_post():
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
 
-    listener = ngrok.forward("localhost:8000", authtoken = ng, domain="intent-sharply-kodiak.ngrok-free.app", port=8000)
+    listener = ngrok.forward("localhost:8000", authtoken = ng, domain="intent-sharply-kodiak.ngrok-free.app")
 
     print(f"Ingress established at: {listener.url()}")
 
