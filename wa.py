@@ -13,7 +13,7 @@ import time
 import os
 import ngrok
 from dotenv import load_dotenv
-app = Flask(__name__)
+app = Flask(_name_)
 
 
 load_dotenv()
@@ -122,8 +122,8 @@ def process_text_for_whatsapp(text):
     pattern = r"\【.*?\】"
     text = re.sub(pattern, "", text).strip()
 
-    pattern = r"\*\*(.*?)\*\*"
-    replacement = r"*\1*"
+    pattern = r"\\(.?)\\*"
+    replacement = r"\1"
     whatsapp_style_text = re.sub(pattern, replacement, text)
 
     return whatsapp_style_text
@@ -205,6 +205,21 @@ def webhook_post():
         logging.error("Failed to decode JSON")
         return jsonify({"status": "error", "message": "Invalid JSON provided"}), 400
 
+import subprocess
+import threading
+def run_ngrok():
+    try:
+        while True:
+            subprocess.run(["ngrok", "http", "--domain=intent-sharply-kodiak.ngrok-free.app", "8000"], check=True)
+    except subprocess.CalledProcessError as e:
+        print(f"An error occurred: {e}")
+        # Handle the error, if needed
+        pass
 
-if __name__ == "__main__":
-  app.run(port=8000, debug=False)
+if _name_ == "_main_":
+    # Start ngrok in a separate thread
+    ngrok_thread = threading.Thread(target=run_ngrok)
+    ngrok_thread.start()
+
+    # Start Flask app
+    app.run(port=8000, debug=False)
