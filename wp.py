@@ -21,6 +21,7 @@ load_dotenv()
 ACCESS_TOKEN = os.getenv("access_token")
 PHONE_NUMBER_ID_1 = os.getenv("phone_number_id_1")
 PHONE_NUMBER_ID_2 = os.getenv("phone_number_id_2")
+ng=os.getenv("authtoken")
 VERSION = "v19.0"
 # Send a custom text WhatsApp message asynchronously
 async def send_message(recipient, data):
@@ -208,7 +209,7 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
 
     # Start ngrok
-    listener = ngrok.forward("localhost:8000", authtoken_from_env=True,
+    listener = ngrok.forward("localhost:8000", authtoken=ng ,
                              domain="example.ngrok.app")
 
     print(f"Ingress established at: {listener.url()}")
