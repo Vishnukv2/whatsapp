@@ -11,6 +11,7 @@ import asyncio
 import subprocess
 import time
 import os
+import ngrok
 from dotenv import load_dotenv
 app = Flask(__name__)
 
@@ -202,12 +203,18 @@ def webhook_post():
     except json.JSONDecodeError:
         logging.error("Failed to decode JSON")
         return jsonify({"status": "error", "message": "Invalid JSON provided"}), 400
-
+        
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
-    
+
     # Start ngrok
-    ngrok_process = subprocess.Popen(["ngrok", "http", "--domain=intent-sharply-kodiak.ngrok-free.app", "8000"])
-    
-    # Start Flask app
-    app.run(port=8000, debug=False)
+    listener = ngrok.forward("localhost:8000", authtoken_from_env=True,
+                             domain="example.ngrok.app")
+
+    print(f"Ingress established at: {listener.url()}")
+
+    try:
+        app.run(port=8000, debug=True)
+    finally:
+        # Terminate ngrok when the Flask app is terminated
+        ngrok.kill()
