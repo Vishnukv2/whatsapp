@@ -204,16 +204,18 @@ def webhook_post():
     except json.JSONDecodeError:
         logging.error("Failed to decode JSON")
         return jsonify({"status": "error", "message": "Invalid JSON provided"}), 400
-        
-if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
 
-    listener = ngrok.forward("localhost:8000", authtoken = ng, domain="intent-sharply-kodiak.ngrok-free.app")
+import subprocess
 
-    print(f"Ingress established at: {listener.url()}")
-
+def run_ngrok():
     try:
-        app.run(port=8000, debug=True)
-    finally:
-        # Terminate ngrok when the Flask app is terminated
-        ngrok.kill()
+        while True:
+            subprocess.run(["ngrok", "http", "--domain=intent-sharply-kodiak.ngrok-free.app", "8000"], check=True)
+    except subprocess.CalledProcessError as e:
+        print(f"An error occurred: {e}")
+        # Handle the error, if needed
+        pass     
+
+if __name__ == "__main__":
+    app.run(port=8000, debug=False)
+    run_ngrok()
