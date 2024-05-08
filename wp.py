@@ -210,14 +210,4 @@ if __name__ == "__main__":
     ngrok_process = subprocess.Popen(["ngrok", "http", "--domain=intent-sharply-kodiak.ngrok-free.app", "8000"])
     
     # Start Flask app
-    app.run(port=8000, debug=True)
-    
-    try:
-        while True:
-            time.sleep(10)
-            if ngrok_process.poll() is not None:
-                print("ngrok process has terminated")
-                break
-    except KeyboardInterrupt:
-        print("Keyboard interrupt detected, stopping ngrok...")
-        ngrok_process.terminate()
+    app.run(port=8000, debug=False)
