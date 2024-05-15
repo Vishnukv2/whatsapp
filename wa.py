@@ -47,8 +47,6 @@ def send_whatsapp_message():
     try:
         content = request.get_json()
         recipient = content.get("recipient")
-        text = content.get("text")
-
         if recipient and text:
             data = json.dumps({
                 "messaging_product": "whatsapp",
@@ -65,7 +63,7 @@ def send_whatsapp_message():
 
             return jsonify(result)
         else:
-            return jsonify({"error": "Recipient and text are required"}), 400
+            return jsonify({"error": "Recipient is required"}), 400
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
