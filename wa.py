@@ -151,7 +151,7 @@ def is_valid_whatsapp_message(body):
 
 def validate_signature(payload, signature):
     expected_signature = hmac.new(
-        bytes("01ef1338d089d9d0f363956b95be33b2", "latin-1"),
+        bytes("172b45d7233fa576bfed08cf742b5259", "latin-1"),
         msg=payload.encode("utf-8"),
         digestmod=hashlib.sha256,
     ).hexdigest()
