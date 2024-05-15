@@ -47,7 +47,7 @@ def send_whatsapp_message():
     try:
         content = request.get_json()
         recipient = content.get("recipient")
-        if recipient and text:
+        if recipient:
             data = json.dumps({
                 "messaging_product": "whatsapp",
                 "recipient_type": "individual",
