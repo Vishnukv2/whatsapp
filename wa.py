@@ -67,6 +67,33 @@ def send_whatsapp_message():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route("/send-custom-message", methods=["POST"])
+def send_custom_whatsapp_message():
+    try:
+        content = request.get_json()
+        recipient = content.get("recipient")
+        text = content.get("text")
+
+        if recipient and text:
+            data = json.dumps({
+                "messaging_product": "whatsapp",
+                "recipient_type": "individual",
+                "to": recipient,
+                "type": "text",
+                "text": {"preview_url": False, "body": text},
+            })
+
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            result = loop.run_until_complete(send_message(recipient, data))
+            loop.close()
+
+            return jsonify(result)
+        else:
+            return jsonify({"error": "Recipient and text are required"}), 400
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 def log_http_response(response):
     logging.info(f"Status: {response.status_code}")
     logging.info(f"Content-type: {response.headers.get('content-type')}")
