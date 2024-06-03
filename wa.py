@@ -205,10 +205,9 @@ def process_whatsapp_message(body):
     message = body["entry"][0]["changes"][0]["value"]["messages"][0]
     message_body = message["text"]["body"]
     sender_number = message["from"]
-
-    # Call the helper function to check and update the guest in the database
-    check_guest_in_db(sender_number)
-
+    headers = {'Content-Type': 'application/json'}
+    data = {'sender_number': response}
+    response = requests.post('https://api.whatsapp.wayschimp.com/check-guest', headers=headers, data=json.dumps(data))
     response = generate_response(message_body)
     data = get_text_message_input(sender_number, response)
     send_messages(data)
