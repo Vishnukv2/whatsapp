@@ -133,8 +133,8 @@ def generate_response(response,body):
         update_query = "UPDATE tbPMS_Guest SET isconnected = 1 WHERE GuestMobile = ?"
         cursor.execute(update_query, (sender_number,))
         connection.commit()
-
-    connection.close()
+        cursor.close()
+        connection.close()
     headers = {'Content-Type': 'application/json'}
     data = {'user_input': response}
 
