@@ -165,7 +165,7 @@ def check_guest_in_db(sender_number):
     try:
         logging.info(f"Checking guest with mobile number: {sender_number}")
 
-        connection = pyodbc.connect(DB_CONNECTION_STRING)
+        connection = pyodbc.connect(db_connection_string)
         cursor = connection.cursor()
 
         query = "SELECT COUNT(*) FROM tbPMS_Guest WHERE GuestMobile = ?"
