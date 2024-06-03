@@ -179,16 +179,57 @@ def process_text_for_whatsapp(text):
 
     return whatsapp_style_text
 
+def check_guest_in_db(sender_number):
+    try:
+        logging.info(f"Checking guest with mobile number: {sender_number}")
+
+        connection = pyodbc.connect(DB_CONNECTION_STRING)
+        cursor = connection.cursor()
+
+        query = "SELECT COUNT(*) FROM tbPMS_Guest WHERE GuestMobile = ?"
+        cursor.execute(query, (sender_number,))
+        result = cursor.fetchone()
+
+        if result[0] > 0:
+            update_query = "UPDATE tbPMS_Guest SET isconnected = 1 WHERE GuestMobile = ?"
+            cursor.execute(update_query, (sender_number,))
+            connection.commit()
+            logging.info(f"Guest with mobile number: {sender_number} is connected.")
+        else:
+            logging.info(f"Guest with mobile number: {sender_number} not found.")
+        connection.close()
+    except Exception as e:
+        logging.error(f"Error checking guest in DB: {e}")
+        raise e
+        
+@app.route("/check-guest", methods=["POST"])
+def check_guest():
+    try:
+        content = request.get_json()
+        sender_number = content.get("sender_number")
+
+        if not sender_number:
+            return jsonify({"error": "Sender number is required"}), 400
+
+        check_guest_in_db(sender_number)
+        return jsonify({"status": "ok"}), 200
+    except Exception as e:
+        logging.error(f"Error in /check-guest endpoint: {e}")
+        return jsonify({"error": str(e)}), 500
+
 def process_whatsapp_message(body):
     wa_id = body["entry"][0]["changes"][0]["value"]["contacts"][0]["wa_id"]
     name = body["entry"][0]["changes"][0]["value"]["contacts"][0]["profile"]["name"]
     message = body["entry"][0]["changes"][0]["value"]["messages"][0]
     message_body = message["text"]["body"]
     sender_number = message["from"]
-    response = generate_response(message_body,body)
-    data = get_text_message_input(sender_number, response)  # Use sender's number as recipient
-    send_messages(data)
 
+    # Call the helper function to check and update the guest in the database
+    check_guest_in_db(sender_number)
+
+    response = generate_response(message_body)
+    data = get_text_message_input(sender_number, response)
+    send_messages(data)
 
 def is_valid_whatsapp_message(body):
     return (body.get("object")
