@@ -185,21 +185,7 @@ def process_whatsapp_message(body):
     message = body["entry"][0]["changes"][0]["value"]["messages"][0]
     message_body = message["text"]["body"]
     sender_number = message["from"]
-    connection = pyodbc.connect(DB_CONNECTION_STRING)
-    cursor = connection.cursor()
-
-    query = "SELECT COUNT(*) FROM tbPMS_Guest WHERE GuestMobile = ?"
-    cursor.execute(query, (sender_number,))
-    result = cursor.fetchone()
-
-    if result[0] > 0:
-        # If sender's number is present in the database, update the isconnected column to 1
-        update_query = "UPDATE tbPMS_Guest SET isconnected = 1 WHERE phone_number = ?"
-        cursor.execute(update_query, (sender_number,))
-        connection.commit()
-
-    connection.close()
-    response = generate_response(message_body)
+    response = generate_response(message_body,body)
     data = get_text_message_input(sender_number, response)  # Use sender's number as recipient
     send_messages(data)
 
