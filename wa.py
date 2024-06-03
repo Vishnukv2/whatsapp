@@ -116,25 +116,7 @@ def get_text_message_input(recipient, text):
         "text": {"preview_url": False, "body": text},
     })
 
-def generate_response(response,body):
-    wa_id = body["entry"][0]["changes"][0]["value"]["contacts"][0]["wa_id"]
-    name = body["entry"][0]["changes"][0]["value"]["contacts"][0]["profile"]["name"]
-    message = body["entry"][0]["changes"][0]["value"]["messages"][0]
-    message_body = message["text"]["body"]
-    sender_number = message["from"]
-    connection = pyodbc.connect(db_connection_string)
-    cursor = connection.cursor()
-    query = "SELECT COUNT(*) FROM tbPMS_Guest WHERE GuestMobile = ?"
-    cursor.execute(query, (sender_number,))
-    result = cursor.fetchone()
-
-    if result[0] > 0:
-        # If sender's number is present in the database, update the isconnected column to 1
-        update_query = "UPDATE tbPMS_Guest SET isconnected = 1 WHERE GuestMobile = ?"
-        cursor.execute(update_query, (sender_number,))
-        connection.commit()
-        cursor.close()
-        connection.close()
+def generate_response(response):
     headers = {'Content-Type': 'application/json'}
     data = {'user_input': response}
 
