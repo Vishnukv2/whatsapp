@@ -14,7 +14,13 @@ import os
 import ngrok
 from dotenv import load_dotenv
 import pyodbc
-DB_CONNECTION_STRING = "DRIVER={ODBC Driver 17 for SQL Server};SERVER=103.239.89.99,21433;DATABASE=HospinsApp_DB_AE;UID=AE_Hospins_usr;PWD=7LNw37*Qm"
+db_connection_string = (
+    "Driver={ODBC Driver 17 for SQL Server};"
+    "Server=103.239.89.99,21433;"
+    "Database=HospinsApp_DB_AE;"
+    "UID=AE_Hospins_usr;"
+    "PWD=7LNw37*Qm;"
+)
 app = Flask(__name__)
 
 
@@ -235,7 +241,7 @@ def webhook_post():
     message = body["entry"][0]["changes"][0]["value"]["messages"][0]
     message_body = message["text"]["body"]
     sender_number = message["from"]
-    connection = pyodbc.connect(DB_CONNECTION_STRING)
+    connection = pyodbc.connect(db_connection_string)
     cursor = connection.cursor()
     query = "SELECT COUNT(*) FROM tbPMS_Guest WHERE GuestMobile = ?"
     cursor.execute(query, (sender_number,))
