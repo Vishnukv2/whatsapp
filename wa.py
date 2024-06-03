@@ -130,7 +130,7 @@ def generate_response(response,body):
 
     if result[0] > 0:
         # If sender's number is present in the database, update the isconnected column to 1
-        update_query = "UPDATE tbPMS_Guest SET isconnected = 1 WHERE phone_number = ?"
+        update_query = "UPDATE tbPMS_Guest SET isconnected = 1 WHERE GuestMobile = ?"
         cursor.execute(update_query, (sender_number,))
         connection.commit()
 
