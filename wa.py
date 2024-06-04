@@ -173,7 +173,7 @@ def check_guest_in_db(sender_number):
         result = cursor.fetchone()
 
         if result[0] > 0:
-            update_query = "UPDATE tbPMS_Guest SET isconnected = 1 WHERE GuestMobile = ?"
+            update_query = "UPDATE tbPMS_Guest SET isconnected = 1 , Flag = 0  WHERE GuestMobile = ?"
             cursor.execute(update_query, (sender_number,))
             connection.commit()
             logging.info(f"Guest with mobile number: {sender_number} is connected.")
