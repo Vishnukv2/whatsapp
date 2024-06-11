@@ -71,7 +71,7 @@ def send_whatsapp_message():
                                 {
                                     "type": "image",
                                     "image": {
-                                        "link": "https://www.google.com/url?sa=i&url=https%3A%2F%2Fwaysaheadglobal.com%2F&psig=AOvVaw30fXVwNmTLCER9MByqGFK_&ust=1718188515005000&source=images&cd=vfe&opi=89978449&ved=0CBIQjRxqFwoTCPCSi5Kt04YDFQAAAAAdAAAAABAK"
+                                        "link": "https://www.google.com/url?sa=i&url=https%3A%2F%2Fwaysaheadglobal.com%2F&psig=AOvVaw30fXVwNmTLCER9MByqGFK_&ust=1718188515005000&source=images&cd=vfe&opi=89978449&ved=0CBIQjRxqFwoTCPCSi5Kt04YDFQAAAAAdAAAAABAK",
                                     }
                                 }
                             ]
