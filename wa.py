@@ -56,13 +56,25 @@ def send_whatsapp_message():
         content = request.get_json()
         recipient = content.get("recipient")
         if recipient:
-            data = json.dumps({
-                "messaging_product": "whatsapp",
-                "recipient_type": "individual",
-                "to": recipient,
-                "type": "template",
-                "template": {"name": "intellect", "language": {"code": "ar"}},
-            })
+                  "data": json.dumps({
+                      "messaging_product": "whatsapp",
+                      "recipient_type": "individual",
+                      "to": recipient,
+                      "type": "template",
+                      "template": {
+                        "name": "intellect",
+                        "language": {"code": "en"},
+                        "components": [
+                          {
+                            "type": "header",
+                            "parameters": [
+                              {
+                                "type": "image"
+                                }
+                              }
+                            ]
+                          },
+                        }
 
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
