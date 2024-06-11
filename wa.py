@@ -55,11 +55,13 @@ def send_whatsapp_message():
     try:
         content = request.get_json()
         recipient = content.get("recipient")
-        if recipient:
-          data = {
+        attachment_id = content.get("attachment_id")  # Assuming attachment ID is provided in the request
+        
+        if recipient and attachment_id:
+            data = {
                 "messaging_product": "whatsapp",
                 "recipient_type": "individual",
-                "to": "recipient_phone_number",
+                "to": recipient,
                 "type": "template",
                 "template": {
                     "name": "intel",
@@ -73,7 +75,7 @@ def send_whatsapp_message():
                                 {
                                     "type": "image",
                                     "image": {
-                                        "id": "1172007793802589"
+                                        "id": attachment_id
                                     }
                                 }
                             ]
@@ -92,13 +94,14 @@ def send_whatsapp_message():
                     ]
                 }
             }
-          loop = asyncio.new_event_loop()
-          asyncio.set_event_loop(loop)
-          result = loop.run_until_complete(send_message(recipient, data))
-          loop.close()
-          return jsonify(result)
+            data_json = json.dumps(data)  # Convert the dictionary to a JSON string
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            result = loop.run_until_complete(send_message(recipient, data_json))
+            loop.close()
+            return jsonify(result)
         else:
-            return jsonify({"error": "Recipient is required"}), 400
+            return jsonify({"error": "Recipient and attachment_id are required"}), 400
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
