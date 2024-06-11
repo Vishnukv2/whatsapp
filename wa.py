@@ -70,11 +70,9 @@ def send_whatsapp_message():
                     },
                     "components": [
                         {
-                            "type": "header",
-                            "parameters": [
-                                {
-                                    "type": "image"
-                                }
+                            "type": "HEADER",
+                            "format":"image",
+                        }
                             ]
                         },
                         {
