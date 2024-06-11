@@ -54,14 +54,28 @@ async def send_message(recipient, data):
 def send_whatsapp_message():
     try:
         content = request.get_json()
-        recipient = content.get("recipient")        
+        recipient = content.get("recipient")
         if recipient:
             data = json.dumps({
                 "messaging_product": "whatsapp",
                 "recipient_type": "individual",
                 "to": recipient,
                 "type": "template",
-                "template": {"name": "welcome", "language": {"code": "en"}},
+                "template": {
+                    "name": "intellect",
+                    "language": {"code": "en"},
+                    "components": [
+                        {
+                            "type": "header",
+                            "parameters": [
+                                {
+                                    "type": "text",
+                                    "text": "Your Header Text"
+                                }
+                            ]
+                        }
+                    ]
+                },
             })
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
@@ -69,7 +83,7 @@ def send_whatsapp_message():
             loop.close()
             return jsonify(result)
         else:
-            return jsonify({"error": "Recipient and text are required"}), 400
+            return jsonify({"error": "Recipient is required"}), 400
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
