@@ -61,21 +61,7 @@ def send_whatsapp_message():
                 "recipient_type": "individual",
                 "to": recipient,
                 "type": "template",
-                "template": {
-                    "name": "intellect",
-                    "language": {"code": "en"},
-                    "components": [
-                        {
-                            "type": "header",
-                            "parameters": [
-                                {
-                                    "type": "text",
-                                    "text": "Your Header Text"
-                                }
-                            ]
-                        }
-                    ]
-                },
+                "template": {"name": "intellect", "language": {"code": "en"}},
             })
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
