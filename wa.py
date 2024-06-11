@@ -90,11 +90,11 @@ def send_whatsapp_message():
                     ]
                 }
             }
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-            result = loop.run_until_complete(send_message(recipient, data))
-            loop.close()
-            return jsonify(result)
+          loop = asyncio.new_event_loop()
+          asyncio.set_event_loop(loop)
+          result = loop.run_until_complete(send_message(recipient, data))
+          loop.close()
+          return jsonify(result)
         else:
             return jsonify({"error": "Recipient is required"}), 400
     except Exception as e:
