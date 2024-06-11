@@ -73,10 +73,7 @@ def send_whatsapp_message():
                             "type": "header",
                             "parameters": [
                                 {
-                                    "type": "image",
-                                    "image": {
-                                        "id": attachment_id
-                                    }
+                                    "type": "image"
                                 }
                             ]
                         },
