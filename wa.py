@@ -61,10 +61,8 @@ def send_whatsapp_message():
                 "recipient_type": "individual",
                 "to": recipient,
                 "type": "template",
-                "template": {"name": "intellect", "language": {"code": "ar"}},
+                "template": {"name": "welcome", "language": {"code": "ar"}},
             })
-
-
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
             result = loop.run_until_complete(send_message(recipient, data))
