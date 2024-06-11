@@ -62,7 +62,7 @@ def send_whatsapp_message():
                 "to": recipient,
                 "type": "template",
                 "template": {
-                    "name": "intellect",
+                    "name": "intel",
                     "language": {"code": "en"},
                     "components": [
                         {
