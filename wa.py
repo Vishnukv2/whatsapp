@@ -57,7 +57,7 @@ def send_whatsapp_message():
         recipient = content.get("recipient")
         if recipient:
           data = {
-                "messaging_product": "whatsapp",
+               "messaging_product": "whatsapp",
                 "recipient_type": "individual",
                 "to": recipient,
                 "type": "template",
@@ -68,7 +68,6 @@ def send_whatsapp_message():
                         {
                             "type": "header",
                             "parameters": [
-                                {
                                     "type": "image",
                                     "image": {
                                     "id": "1172007793802589"
