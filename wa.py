@@ -56,13 +56,26 @@ def send_whatsapp_message():
         content = request.get_json()
         recipient = content.get("recipient")
         if recipient:
-            data = json.dumps({
+          data = {
                 "messaging_product": "whatsapp",
                 "recipient_type": "individual",
                 "to": recipient,
                 "type": "template",
-                "template": {"name": "intellect", "language": {"code": "ar"}},
-                "components": [
+                "template": {
+                    "name": "intellect",
+                    "language": {"code": "en"},
+                    "components": [
+                        {
+                            "type": "header",
+                            "parameters": [
+                                {
+                                    "type": "image",
+                                    "image": {
+                                        "link": "https://www.google.com/url?sa=i&url=https%3A%2F%2Fwaysaheadglobal.com%2F&psig=AOvVaw30fXVwNmTLCER9MByqGFK_&ust=1718188515005000&source=images&cd=vfe&opi=89978449&ved=0CBIQjRxqFwoTCPCSi5Kt04YDFQAAAAAdAAAAABAK"
+                                    }
+                                }
+                            ]
+                        },
                         {
                             "type": "button",
                             "sub_type": "url",
@@ -75,7 +88,8 @@ def send_whatsapp_message():
                             ]
                         }
                     ]
-            })
+                }
+            }
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
             result = loop.run_until_complete(send_message(recipient, data))
