@@ -85,8 +85,8 @@ def send_custom_whatsapp_message():
                 "messaging_product": "whatsapp",
                 "recipient_type": "individual",
                 "to": recipient,
-                "type": "template",
-                "template": {"name": "welcome", "language": {"code": "en"}},
+                "type": "text",
+                "text": {"preview_url": False, "body": text},
             })
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
