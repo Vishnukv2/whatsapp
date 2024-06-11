@@ -61,7 +61,20 @@ def send_whatsapp_message():
                 "recipient_type": "individual",
                 "to": recipient,
                 "type": "template",
-                "template": {"name": "intellect", "language": {"code": "en"}},
+                "template": {"name": "intellect", "language": {"code": "ar"}},
+                "components": [
+                        {
+                            "type": "button",
+                            "sub_type": "url",
+                            "index": "0",
+                            "parameters": [
+                                {
+                                    "type": "text",
+                                    "text": "https://www.waysaheadglobal.com/index.html"
+                                }
+                            ]
+                        }
+                    ]
             })
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
