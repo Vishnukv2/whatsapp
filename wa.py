@@ -70,7 +70,7 @@ def send_whatsapp_message():
 
             return jsonify(result)
         else:
-            return jsonify({"error": "Recipient is required"}), 400
+            return jsonify({"error": "Recipient and text are required"}), 400
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -89,7 +89,6 @@ def send_custom_whatsapp_message():
                 "type": "text",
                 "text": {"preview_url": False, "body": text},
             })
-
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
             result = loop.run_until_complete(send_message(recipient, data))
