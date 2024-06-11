@@ -54,20 +54,19 @@ async def send_message(recipient, data):
 def send_whatsapp_message():
     try:
         content = request.get_json()
-        recipient = content.get("recipient")
+        recipient = content.get("recipient")        
         if recipient:
-                data = json.dumps({
+            data = json.dumps({
                 "messaging_product": "whatsapp",
                 "recipient_type": "individual",
                 "to": recipient,
-                "type": "template",
-                "template": {"name": "welcome", "language": {"code": "ar"}},
+                "type": "text",
+                "text": {"preview_url": False, "body": text},
             })
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
             result = loop.run_until_complete(send_message(recipient, data))
             loop.close()
-
             return jsonify(result)
         else:
             return jsonify({"error": "Recipient and text are required"}), 400
