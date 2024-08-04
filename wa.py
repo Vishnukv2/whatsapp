@@ -252,7 +252,6 @@ def process_whatsapp_message(body):
         if session_id:
             session_ids[sender_number] = session_id
     check_guest_in_db(sender_number)
-    session-id = requests.request("GET", url, headers=headers, data=payload)
     response = generate_response(sender_number, message_body)
     data = get_text_message_input(sender_number, response)
     send_messages(data)
