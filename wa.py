@@ -50,6 +50,16 @@ async def send_message(recipient, data):
         except aiohttp.ClientConnectorError as e:
             return {"status": 500, "response": str(e)}
 
+session_ids = {}
+def generate_session_id(phone_number):
+    url = "https://testapi.unomiru.com/api/Waysbot/generate_sessionid"
+    response = requests.request("GET", url, headers=headers, data=payload)
+    if response.status_code == 200:
+        return response.json().get('session_id')
+    else:
+        logging.error(f"Failed to generate session ID for {phone_number}: {response.text}")
+        return None
+
 @app.route("/send-message", methods=["POST"])
 def send_whatsapp_message():
     try:
@@ -146,19 +156,21 @@ def get_text_message_input(recipient, text):
         "text": {"preview_url": False, "body": text},
     })
 
-def generate_response(response):
-    headers = {'Content-Type': 'application/json'}
+def generate_response(sender_number, response):
+    headers = {
+        'session-id': session_ids.get(sender_number),
+        'Content-Type': 'application/json'
+    }
     data = {'user_input': response}
 
-    response = requests.post('https://ae.arrive.waysdatalabs.com/api/chat', headers=headers, data=json.dumps(data))
-    if response.status_code == 200:
-        api_response = response.json()
-        c_response = api_response.get('response')
-        return c_response
+    api_response = requests.post('https://testapi.unomiru.com/api/Waysbot/chat', headers=headers, data=json.dumps(data))
+    if api_response.status_code == 200:
+        response_json = api_response.json()
+        return response_json.get('response')
     else:
-        print("Error calling API. Status code:", response.status_code)
-        print("Error response:", response.text)
+        logging.error(f"Error calling API. Status code: {api_response.status_code}, Error response: {api_response.text}")
         return None
+
 
 def send_messages(data):
     headers = {
@@ -235,8 +247,13 @@ def process_whatsapp_message(body):
     message = body["entry"][0]["changes"][0]["value"]["messages"][0]
     message_body = message["text"]["body"]
     sender_number = message["from"]
+    if sender_number not in session_ids:
+        session_id = generate_session_id(sender_number)
+        if session_id:
+            session_ids[sender_number] = session_id
     check_guest_in_db(sender_number)
-    response = generate_response(message_body)
+    session-id = requests.request("GET", url, headers=headers, data=payload)
+    response = generate_response(sender_number, message_body)
     data = get_text_message_input(sender_number, response)
     send_messages(data)
 
