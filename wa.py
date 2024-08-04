@@ -70,9 +70,14 @@ def send_whatsapp_message():
                     },
                     "components": [
                         {
-                            "type": "HEADER",
-                            "format":"image",
-                        }
+                            "type": "header",
+                            "parameters": [
+                                {
+                                    "type": "image",
+                                    "image": {
+                                        "id": attachment_id
+                                    }
+                                }
                             ]
                         },
                         {
@@ -89,6 +94,7 @@ def send_whatsapp_message():
                     ]
                 }
             }
+
             data_json = json.dumps(data)  # Convert the dictionary to a JSON string
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
