@@ -53,7 +53,7 @@ async def send_message(recipient, data):
 session_ids = {}
 def generate_session_id(phone_number):
     url = "https://testapi.unomiru.com/api/Waysbot/generate_sessionid"
-    response = requests.request("GET", url, headers=headers, data=payload)
+    response = requests.request("GET", url)
     if response.status_code == 200:
         return response.json().get('session_id')
     else:
