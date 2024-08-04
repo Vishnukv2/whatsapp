@@ -55,9 +55,9 @@ def generate_session_id(phone_number):
     url = "https://testapi.unomiru.com/api/Waysbot/generate_sessionid"
     response = requests.request("GET", url)
     if response.status_code == 200:
-        return response.json().get('session_id')
+        session_id=response.text 
+        return session_id
     else:
-        logging.error(f"Failed to generate session ID for {phone_number}: {response.text}")
         return None
 
 @app.route("/send-message", methods=["POST"])
@@ -167,6 +167,7 @@ def generate_response(sender_number, response):
     if api_response.status_code == 200:
         api_response = response.json()
         c_response = api_response.get('response')
+        print(c_response)
         return c_response
     else:
         logging.error(f"Error calling API. Status code: {api_response.status_code}, Error response: {api_response.text}")
