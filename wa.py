@@ -165,8 +165,9 @@ def generate_response(sender_number, response):
 
     api_response = requests.post('https://testapi.unomiru.com/api/Waysbot/chat', headers=headers, data=json.dumps(data))
     if api_response.status_code == 200:
-        response_json = api_response.json()
-        return response_json.get('response')
+        api_response = response.json()
+        c_response = api_response.get('response')
+        return c_response
     else:
         logging.error(f"Error calling API. Status code: {api_response.status_code}, Error response: {api_response.text}")
         return None
