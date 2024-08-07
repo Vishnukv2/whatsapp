@@ -259,7 +259,7 @@ def insert_chat_history(user_input, bot_response, session_id, phone_number):
             INSERT INTO Wayschat_hist (User_input, Bot_response, Date, session_id, phone_number)
             VALUES (?, ?, ?, ?, ?)
         """
-        cursor.execute(insert_query, (user_input, bot_response, session_id, phone_number))
+        cursor.execute(insert_query, (user_input, bot_response, formatted_date, session_id, phone_number))
         connection.commit()
         connection.close()
     except Exception as e:
