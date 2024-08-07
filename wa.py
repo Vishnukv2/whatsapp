@@ -13,6 +13,7 @@ import time
 import os
 import ngrok
 from dotenv import load_dotenv
+from datetime import datetime, timedelta
 import pyodbc
 db_connection_string = (
     "Driver={ODBC Driver 17 for SQL Server};"
@@ -20,6 +21,13 @@ db_connection_string = (
     "Database=HospinsApp_DB_AE;"
     "UID=AE_Hospins_usr;"
     "PWD=7LNw37*Qm;"
+)
+db_string = (
+    "Driver={ODBC Driver 17 for SQL Server};"
+    "Server=103.239.89.99,21433;"
+    "Database=PMO360_DB;"
+    "UID=PMOlogbook_Usr;"
+    "PWD=aPMO86#iaxh;"
 )
 app = Flask(__name__)
 
@@ -241,6 +249,23 @@ def check_guest():
         logging.error(f"Error in /check-guest endpoint: {e}")
         return jsonify({"error": str(e)}), 500
 
+def insert_chat_history(user_input, bot_response, session_id, phone_number):
+    try:
+        current_datetime = datetime.utcnow()
+        formatted_date = current_datetime.strftime("%Y-%m-%d %H:%M:%S")
+        connection = pyodbc.connect(db_string)
+        cursor = connection.cursor()
+        insert_query = """
+            INSERT INTO Wayschat_hist (User_input, Bot_response, Date, session_id, phone_number)
+            VALUES (?, ?, ?, ?, ?)
+        """
+        cursor.execute(insert_query, (user_input, bot_response, session_id, phone_number))
+        connection.commit()
+        connection.close()
+    except Exception as e:
+        logging.error(f"Error inserting chat history into DB: {e}")
+        raise e
+
 def process_whatsapp_message(body):
     wa_id = body["entry"][0]["changes"][0]["value"]["contacts"][0]["wa_id"]
     name = body["entry"][0]["changes"][0]["value"]["contacts"][0]["profile"]["name"]
@@ -255,6 +280,7 @@ def process_whatsapp_message(body):
     response = generate_response(sender_number, message_body)
     data = get_text_message_input(sender_number, response)
     send_messages(data)
+    insert_chat_history(message_body, response, session_ids[sender_number], sender_number)
 
 def is_valid_whatsapp_message(body):
     return (body.get("object")
