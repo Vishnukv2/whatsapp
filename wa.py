@@ -3,6 +3,7 @@ import json
 import requests
 import re
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 from functools import wraps
 import hashlib
 import hmac
@@ -15,6 +16,7 @@ import ngrok
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
 import pyodbc
+CORS(app, resources={"/*": {"origins": "*"}})
 db_connection_string = (
     "Driver={ODBC Driver 17 for SQL Server};"
     "Server=103.239.89.99,21433;"
