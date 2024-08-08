@@ -16,7 +16,6 @@ import ngrok
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
 import pyodbc
-CORS(app, resources={"/*": {"origins": "*"}})
 db_connection_string = (
     "Driver={ODBC Driver 17 for SQL Server};"
     "Server=103.239.89.99,21433;"
@@ -32,10 +31,8 @@ db_string = (
     "PWD=aPMO86#iaxh;"
 )
 app = Flask(__name__)
-
-
 load_dotenv()
-
+CORS(app, resources={"/*": {"origins": "*"}})
 ACCESS_TOKEN = os.getenv("access_token")
 PHONE_NUMBER_ID_1 = os.getenv("phone_number_id_1")
 PHONE_NUMBER_ID_2 = os.getenv("phone_number_id_2")
