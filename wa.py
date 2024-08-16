@@ -243,7 +243,7 @@ def send_message():
             return jsonify({'error': 'Database connection failed'}), 500
         cursor = conn.cursor()
         cursor.execute("""
-            INSERT INTO Wayschat_hist (text, recipient, Date)
+            INSERT INTO dbo.Wayschat_hist (Bot_response, phone_number, Date)
             VALUES (?, ?, ?)
         """, (text, recipient, datetime.datetime.now()))
         conn.commit()
