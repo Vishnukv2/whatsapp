@@ -170,6 +170,7 @@ def dashboard():
         cursor.execute("""
             SELECT phone_number
             FROM dbo.Wayschat_hist
+            WHERE phone_number IS NOT NULL
             ORDER BY phone_number, Date DESC
         """)
         rows = cursor.fetchall()
