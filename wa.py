@@ -204,8 +204,6 @@ def fetch_messages():
             return jsonify({"error": "Database connection failed"}), 500
 
         cursor = conn.cursor()
-
-        # SQL query to get messages for the specific phone number
         cursor.execute("""
             SELECT User_input, Bot_response, response_time, Date, session_id
             FROM dbo.Wayschat_hist
@@ -214,8 +212,6 @@ def fetch_messages():
         """, (phone_number,))
         
         rows = cursor.fetchall()
-
-        # Convert the query results to a list of dictionaries
         messages = [
             {
                 "User_input": row.User_input,
@@ -234,46 +230,25 @@ def fetch_messages():
         if conn:
             conn.close()
 
-@app.route('/sendMessage', methods=['POST'])
+@app.route('/save_response', methods=['POST'])
 def send_message():
     data = request.get_json()
     if not data or 'text' not in data or 'recipient' not in data:
         return jsonify({'error': 'Invalid input'}), 400
-
     text = data['text']
     recipient = data['recipient']
-
     try:
-        response = requests.post(
-            'https://api.whatsapp.wayschimp.com/send-custom-message',
-            json={'text': text, 'recipient': recipient},
-            headers={'Content-Type': 'application/json'}
-        )
-
-        if response.status_code != 200:
-            print('Failed to send message', {
-                'status': response.status_code,
-                'body': response.text
-            })
-            return jsonify({'error': 'Failed to send message'}), 500
-
-        # Extract bot response
-        bot_response = response.json()
-
-        # Insert data into the database
         conn = get_db_connection()
         if conn is None:
             return jsonify({'error': 'Database connection failed'}), 500
-
         cursor = conn.cursor()
         cursor.execute("""
-            INSERT INTO dbo.Wayschat_hist (Bot_response, phone_number, Date)
+            INSERT INTO dbo.Wayschat_hist (text, recipient, Date)
             VALUES (?, ?, ?)
         """, (text, recipient, datetime.datetime.now()))
         conn.commit()
         conn.close()
-        return jsonify(bot_response)
-
+        return jsonify({"Message sent"})
     except Exception as e:
         print('Exception occurred while sending message', {
             'message': str(e),
