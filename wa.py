@@ -250,10 +250,6 @@ def send_message():
         conn.close()
         return jsonify({"Message sent"})
     except Exception as e:
-        print('Exception occurred while sending message', {
-            'message': str(e),
-            'trace': e._traceback_
-        })
         return jsonify({'error': 'Internal Server Error'}), 500
 
 def log_http_response(response):
