@@ -209,7 +209,7 @@ def fetch_messages():
             SELECT User_input, Bot_response, response_time, Date, session_id
             FROM dbo.Wayschat_hist
             WHERE phone_number = ?
-            ORDER BY Date desc
+            ORDER BY Date 
         """, (phone_number,))
         
         rows = cursor.fetchall()
