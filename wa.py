@@ -247,7 +247,7 @@ def send_message():
         
         cursor = conn.cursor()
         cursor.execute("""
-            INSERT INTO Wayschat_hist (User_input, Bot_response, Date)
+            INSERT INTO Wayschat_hist ( Bot_response, phone_number, Date)
             VALUES (?, ?, ?)
         """, (text, recipient, datetime.now()))
         
