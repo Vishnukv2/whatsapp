@@ -244,7 +244,6 @@ def send_message():
     recipient = data['recipient']
 
     try:
-        # Make an HTTP POST request to the external API
         response = requests.post(
             'https://api.whatsapp.wayschimp.com/send-custom-message',
             json={'text': text, 'recipient': recipient},
@@ -272,7 +271,7 @@ def send_message():
             VALUES (?, ?, ?)
         """, (text, recipient, datetime.datetime.now()))
         conn.commit()
-
+        conn.close()
         return jsonify(bot_response)
 
     except Exception as e:
@@ -281,10 +280,6 @@ def send_message():
             'trace': e._traceback_
         })
         return jsonify({'error': 'Internal Server Error'}), 500
-
-    finally:
-        if conn:
-            conn.close()
 
 def log_http_response(response):
     logging.info(f"Status: {response.status_code}")
