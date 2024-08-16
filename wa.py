@@ -229,28 +229,32 @@ def fetch_messages():
     finally:
         if conn:
             conn.close()
-
+            
 @app.route('/save_response', methods=['POST'])
 def send_message():
     data = request.get_json()
     if not data or 'text' not in data or 'recipient' not in data:
         return jsonify({'error': 'Invalid input'}), 400
+    
     text = data['text']
     recipient = data['recipient']
+    
     try:
         conn = get_db_connection()
         if conn is None:
             return jsonify({'error': 'Database connection failed'}), 500
+        
         cursor = conn.cursor()
         cursor.execute("""
-            INSERT INTO dbo.Wayschat_hist (Bot_response, phone_number, Date)
+            INSERT INTO Wayschat_hist (User_input, Bot_response, Date)
             VALUES (?, ?, ?)
         """, (text, recipient, datetime.datetime.now()))
+        
         conn.commit()
-        return jsonify({"Message sent"})
+        return jsonify({'message': 'Message sent'}), 200
+    
     except Exception as e:
-        return jsonify({'error': 'Internal Server Error'}), 500
-
+        return jsonify({'error': 'Internal Server Error', 'details': str(e)}), 500
 def log_http_response(response):
     logging.info(f"Status: {response.status_code}")
     logging.info(f"Content-type: {response.headers.get('content-type')}")
