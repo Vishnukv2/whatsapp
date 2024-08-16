@@ -149,39 +149,143 @@ def send_custom_whatsapp_message():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@app.route('/fetch-messages', methods=['POST'])
+def get_db_connection():
+    try:
+        connection = pyodbc.connect(db_string)
+        return connection
+    except Exception as e:
+        print(f"Error connecting to database: {e}")
+        return None
+        
+@app.route('/dashboard', methods=['GET'])
+def dashboard():
+    try:
+        conn = get_db_connection()
+        if conn is None:
+            return jsonify({"error": "Database connection failed"}), 500
+
+        cursor = conn.cursor()
+
+        # SQL query to fetch records from dbo.Wayschat_hist table
+        cursor.execute("""
+            SELECT phone_number
+            FROM dbo.Wayschat_hist
+            ORDER BY phone_number, Date DESC
+        """)
+        rows = cursor.fetchall()
+
+        # Group by phone_number and extract unique phone numbers
+        phone_numbers = set(row.phone_number for row in rows)
+
+        total_phone_numbers = len(phone_numbers)
+        phone_numbers_json = json.dumps(list(phone_numbers))
+
+        return jsonify({
+            "phoneNumbersJson": phone_numbers_json,
+            "totalPhoneNumbers": total_phone_numbers
+        })
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        if conn:
+            conn.close()
+
+@app.route('/fetchMessages', methods=['GET'])
 def fetch_messages():
-    phone_number = request.json.get('phone_number')
+    phone_number = request.args.get('phone_number')
 
     if not phone_number:
-        return "Phone number is required", 400
+        return jsonify({"error": "Phone number is required"}), 400
 
     try:
-        with pyodbc.connect(db_string) as conn:
-            cursor = conn.cursor()
+        conn = get_db_connection()
+        if conn is None:
+            return jsonify({"error": "Database connection failed"}), 500
 
-            # Get messages for the specific phone number
-            cursor.execute("""
-                SELECT User_input, Bot_response, response_time, Date, session_id
-                FROM dbo.Wayschat_hist
-                WHERE phone_number = ?
-                ORDER BY Date
-            """, phone_number)
-            messages = cursor.fetchall()
+        cursor = conn.cursor()
 
-            messages_list = [{
-                'User_input': row.User_input,
-                'Bot_response': row.Bot_response,
-                'response_time': row.response_time,
-                'Date': row.Date,
-                'session_id': row.session_id
-            } for row in messages]
+        # SQL query to get messages for the specific phone number
+        cursor.execute("""
+            SELECT User_input, Bot_response, response_time, Date, session_id
+            FROM dbo.Wayschat_hist
+            WHERE phone_number = ?
+            ORDER BY Date
+        """, (phone_number,))
+        
+        rows = cursor.fetchall()
 
-        return jsonify(messages_list)
+        # Convert the query results to a list of dictionaries
+        messages = [
+            {
+                "User_input": row.User_input,
+                "Bot_response": row.Bot_response,
+                "response_time": row.response_time,
+                "Date": row.Date.strftime('%Y-%m-%d %H:%M:%S'),
+                "session_id": row.session_id
+            }
+            for row in rows
+        ]
+
+        return jsonify(messages)
+
     except Exception as e:
-        logging.error(f"Error fetching messages: {e}")
+        return jsonify({"error": str(e)}), 500
+    finally:
+        if conn:
+            conn.close()
+
+@app.route('/sendMessage', methods=['POST'])
+def send_message():
+    data = request.get_json()
+    if not data or 'text' not in data or 'recipient' not in data:
+        return jsonify({'error': 'Invalid input'}), 400
+
+    text = data['text']
+    recipient = data['recipient']
+
+    try:
+        # Make an HTTP POST request to the external API
+        response = requests.post(
+            'https://api.whatsapp.wayschimp.com/send-custom-message',
+            json={'text': text, 'recipient': recipient},
+            headers={'Content-Type': 'application/json'}
+        )
+
+        if response.status_code != 200:
+            print('Failed to send message', {
+                'status': response.status_code,
+                'body': response.text
+            })
+            return jsonify({'error': 'Failed to send message'}), 500
+
+        # Extract bot response
+        bot_response = response.json()
+
+        # Insert data into the database
+        conn = get_db_connection()
+        if conn is None:
+            return jsonify({'error': 'Database connection failed'}), 500
+
+        cursor = conn.cursor()
+        cursor.execute("""
+            INSERT INTO dbo.Wayschat_hist (Bot_response, phone_number, Date)
+            VALUES (?, ?, ?)
+        """, (text, recipient, datetime.datetime.now()))
+        conn.commit()
+
+        return jsonify(bot_response)
+
+    except Exception as e:
+        print('Exception occurred while sending message', {
+            'message': str(e),
+            'trace': e._traceback_
+        })
         return jsonify({'error': 'Internal Server Error'}), 500
 
+    finally:
+        if conn:
+            conn.close()
 
 def log_http_response(response):
     logging.info(f"Status: {response.status_code}")
