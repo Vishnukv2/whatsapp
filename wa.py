@@ -197,9 +197,9 @@ def fetch_messages():
 
     if not phone_number:
         return jsonify({"error": "Phone number is required"}), 400
-
+    conn = get_db_connection()
     try:
-        conn = get_db_connection()
+        
         if conn is None:
             return jsonify({"error": "Database connection failed"}), 500
 
@@ -226,7 +226,6 @@ def fetch_messages():
             }
             for row in rows
         ]
-
         return jsonify(messages)
 
     except Exception as e:
