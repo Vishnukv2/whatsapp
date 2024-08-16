@@ -243,11 +243,10 @@ def send_message():
             return jsonify({'error': 'Database connection failed'}), 500
         cursor = conn.cursor()
         cursor.execute("""
-            INSERT INTO dbo.Wayschat_hist (text, recipient, Date)
+            INSERT INTO Wayschat_hist (text, recipient, Date)
             VALUES (?, ?, ?)
         """, (text, recipient, datetime.datetime.now()))
         conn.commit()
-        conn.close()
         return jsonify({"Message sent"})
     except Exception as e:
         return jsonify({'error': 'Internal Server Error'}), 500
