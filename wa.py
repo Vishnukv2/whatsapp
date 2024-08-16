@@ -149,6 +149,40 @@ def send_custom_whatsapp_message():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/fetch-messages', methods=['POST'])
+def fetch_messages():
+    phone_number = request.json.get('phone_number')
+
+    if not phone_number:
+        return "Phone number is required", 400
+
+    try:
+        with pyodbc.connect(db_string) as conn:
+            cursor = conn.cursor()
+
+            # Get messages for the specific phone number
+            cursor.execute("""
+                SELECT User_input, Bot_response, response_time, Date, session_id
+                FROM dbo.Wayschat_hist
+                WHERE phone_number = ?
+                ORDER BY Date
+            """, phone_number)
+            messages = cursor.fetchall()
+
+            messages_list = [{
+                'User_input': row.User_input,
+                'Bot_response': row.Bot_response,
+                'response_time': row.response_time,
+                'Date': row.Date,
+                'session_id': row.session_id
+            } for row in messages]
+
+        return jsonify(messages_list)
+    except Exception as e:
+        logging.error(f"Error fetching messages: {e}")
+        return jsonify({'error': 'Internal Server Error'}), 500
+
+
 def log_http_response(response):
     logging.info(f"Status: {response.status_code}")
     logging.info(f"Content-type: {response.headers.get('content-type')}")
