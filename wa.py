@@ -248,7 +248,7 @@ def send_message():
         cursor.execute("""
             INSERT INTO Wayschat_hist (User_input, Bot_response, Date)
             VALUES (?, ?, ?)
-        """, (text, recipient, datetime.datetime.now()))
+        """, (text, recipient, datetime.now()))
         
         conn.commit()
         return jsonify({'message': 'Message sent'}), 200
