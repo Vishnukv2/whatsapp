@@ -232,7 +232,7 @@ def fetch_messages():
             conn.close()
             
 @app.route('/save_response', methods=['POST'])
-def send_message():
+def send_message_user():
     data = request.get_json()
     if not data or 'text' not in data or 'recipient' not in data:
         return jsonify({'error': 'Invalid input'}), 400
@@ -256,6 +256,8 @@ def send_message():
     
     except Exception as e:
         return jsonify({'error': 'Internal Server Error', 'details': str(e)}), 500
+
+
 def log_http_response(response):
     logging.info(f"Status: {response.status_code}")
     logging.info(f"Content-type: {response.headers.get('content-type')}")
