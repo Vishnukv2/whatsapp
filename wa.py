@@ -435,8 +435,7 @@ def insert_chat_history(user_input, bot_response, phone_number):
             INSERT INTO tbWhatsAppChat (ClientID, User_input, Bot_response)
             VALUES (?, ?, ?, ?)
         """
-        cursor.execute(insert_chat_query, (client_id, user_input, bot_response)
-        
+        cursor.execute(insert_chat_query, (client_id, user_input, bot_response))        
         connection.commit()
         connection.close()
 
