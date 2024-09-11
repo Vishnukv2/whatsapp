@@ -160,7 +160,7 @@ def get_db_connection():
 @app.route("/api/dashboard", methods=["GET"])
 def get_unique_phone_numbers():
     try:
-        with pyodbc.connect(db_connection_string) as conn:
+        with pyodbc.connect(db_string) as conn:
             cursor = conn.cursor()
             query = """
                 SELECT c.phone_number, 
