@@ -206,44 +206,71 @@ def get_unique_phone_numbers():
         logging.error(f"Failed to retrieve unique phone numbers: {e}")
         return jsonify({"error": "Failed to retrieve data"}), 500
 
-@app.route('/fetchMessages', methods=['GET'])
-def fetch_messages():
-    phone_number = request.args.get('phone_number')
-
-    if not phone_number:
-        return jsonify({"error": "Phone number is required"}), 400
-    conn = get_db_connection()
+@app.route("/api/fetch_chat", methods=["POST"])
+def fetch_chat_by_phone_number():
     try:
-        
-        if conn is None:
-            return jsonify({"error": "Database connection failed"}), 500
+        content = request.get_json()
+        phone_number = content.get("phone_number")
 
-        cursor = conn.cursor()
-        cursor.execute("""
-            SELECT User_input, Bot_response, response_time, Date, session_id
-            FROM dbo.Wayschat_hist
-            WHERE phone_number = ?
-            ORDER BY Date 
-        """, (phone_number,))
-        
-        rows = cursor.fetchall()
-        messages = [
-            {
-                "User_input": row.User_input,
-                "Bot_response": row.Bot_response,
-                "response_time": row.response_time,
-                "Date": row.Date.strftime('%Y-%m-%d %H:%M:%S'),
-                "session_id": row.session_id
-            }
-            for row in rows
-        ]
-        return jsonify(messages)
+        if phone_number:
+            with pyodbc.connect(db_connection_string) as conn:
+                cursor = conn.cursor()
 
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-    finally:
-        if conn:
-            conn.close()
+                # Get the ClientID from the tbWhatsAppClients table using the provided phone number
+                user_query = "SELECT ClientID FROM tbWhatsAppClients WHERE PhoneNumber = ?"
+                cursor.execute(user_query, phone_number)
+                user = cursor.fetchone()
+
+                if user is None:
+                    return jsonify({"error": "Phone number not found"}), 404
+
+                client_id = user.ClientID
+
+                # Fetch the messages for the provided ClientID, ordered by Date ASC
+                message_query = """
+                    SELECT UserInput, BotResponse, Date, ClientID
+                    FROM tbWhatsappChat
+                    WHERE ClientID = ?
+                    ORDER BY Date ASC
+                """
+                cursor.execute(message_query, client_id)
+
+                # Group chats by date
+                chats_by_date = {}
+                for row in cursor.fetchall():
+                    timestamp = row.Date
+                    date = timestamp.strftime("%d-%m-%Y")  # Group by date (e.g., "03-09-2024")
+                    time = timestamp.strftime("%I:%M %p")  # Time format (e.g., "9:15 AM")
+
+                    # Prepare message format based on ClientID
+                    message = {
+                        "time": time,
+                        "bot_response": row.BotResponse
+                    }
+
+                    if row.ClientID != -1:
+                        message["user_input"] = row.UserInput
+
+                    # Append the message to the correct date group
+                    if date not in chats_by_date:
+                        chats_by_date[date] = []
+
+                    chats_by_date[date].append(message)
+
+                # Formatting the output to have "actual_date" directly associated with chats
+                simplified_response = []
+                for date, messages in chats_by_date.items():
+                    simplified_response.append({
+                        "actual_date": date,
+                        "chats": messages
+                    })
+
+            return jsonify({"dates": simplified_response}), 200
+        else:
+            return jsonify({"error": "Phone number is required"}), 400
+    except pyodbc.Error as e:
+        logging.error(f"Failed to fetch chats: {e}")
+        return jsonify({"error": "Failed to retrieve data"}), 500
             
 @app.route('/save_response', methods=['POST'])
 def send_message_user():
