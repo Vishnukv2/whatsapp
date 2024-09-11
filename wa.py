@@ -531,7 +531,7 @@ import subprocess
 import threading
 def run_ngrok():
     try:
-        subprocess.run(["ngrok", "http", "--domain=intent-sharply-kodiak.ngrok-free.app", "8000"], check=True)
+        subprocess.run(["ngrok", "http", "--domain=intent-sharply-kodiak.ngrok-free.app", "5000"], check=True)
     except subprocess.CalledProcessError as e:
         print(f"An error occurred: {e}")
         # Handle the error, if needed
@@ -543,4 +543,4 @@ if __name__ == "__main__":
     ngrok_thread.start()
 
     # Start Flask app
-    app.run(port=8000, debug=False)
+    app.run(port=5000, debug=False)
