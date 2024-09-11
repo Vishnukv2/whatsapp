@@ -509,20 +509,23 @@ def webhook_get():
         
 @app.route("/Lumi", methods=["POST"])
 @signature_required
-def webhook1_post():
+def webhook_post():
     body = request.get_json()
-    logging.info(f"Webhook 1 received request: {body}")
-
-    # Add filtering based on criteria
-    if body.get("entry", [{}])[0].get("changes", [{}])[0].get("value", {}).get("phone_number") == "number_1":
-        if body.get("entry", [{}])[0].get("changes", [{}])[0].get("value", {}).get("statuses"):
-            logging.info("Webhook 1: Received a WhatsApp status update.")
+    if (body.get("entry", [{}])[0]
+        .get("changes", [{}])[0]
+        .get("value", {})
+        .get("statuses")):
+        logging.info("Received a WhatsApp status update.")
+        return jsonify({"status": "ok"}), 200
+    try:
+        if is_valid_whatsapp_message(body):
+            process_whatsapp_message(body)
             return jsonify({"status": "ok"}), 200
         else:
             return jsonify({"status": "error", "message": "Not a WhatsApp API event"}), 404
-    else:
-        logging.info("Webhook 1: Ignored event.")
-        return jsonify({"status": "ignored"}), 200
+    except json.JSONDecodeError:
+        logging.error("Failed to decode JSON")
+        return jsonify({"status": "error", "message": "Invalid JSON provided"}), 400
 
 
 
