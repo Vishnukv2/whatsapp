@@ -531,7 +531,7 @@ import subprocess
 import threading
 def run_ngrok():
     try:
-        subprocess.run(["ngrok", "http", "--domain=intent-sharply-kodiak.ngrok-free.app", "5000"], check=True)
+        subprocess.run(["ngrok", "http", "--authtoken=2fNXXkafTvkOoZCn44XfG89Zr7E_4Va2jB9AqQbnWGFkKHTrr", "--domain=intent-sharply-kodiak.ngrok-free.app", "5000"], check=True)
     except subprocess.CalledProcessError as e:
         print(f"An error occurred: {e}")
         # Handle the error, if needed
