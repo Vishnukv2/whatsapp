@@ -496,7 +496,7 @@ def webhook_get():
     token = request.args.get("hub.verify_token")
     challenge = request.args.get("hub.challenge")
     if mode and token:
-        if mode == "subscribe" and token == "12345":
+        if mode == "subscribe" and token == "123456":
             logging.info("WEBHOOK_VERIFIED")
             return challenge, 200
         else:
