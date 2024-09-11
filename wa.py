@@ -160,25 +160,26 @@ def get_db_connection():
 @app.route("/api/dashboard", methods=["GET"])
 def get_unique_phone_numbers():
     try:
-        with pyodbc.connect(db_string) as conn:
+        with pyodbc.connect(db_connection_string) as conn:
             cursor = conn.cursor()
+
+            # Fetch unique phone numbers and their associated names from tbWhatsAppClients
             query = """
-                SELECT c.phone_number, 
-                       ISNULL(c.name, c.phone_number) AS display_name,
+                SELECT c.PhoneNumber, ISNULL(c.Name, c.PhoneNumber) AS display_name,
                        MAX(m.Date) AS last_conversation_date
                 FROM tbWhatsAppClients c
-                LEFT JOIN tbWhatsAppChat m ON c.ClientId = m.ClientId
-                GROUP BY c.phone_number, c.name
+                LEFT JOIN tbWhatsappChat m ON c.ClientID = m.ClientID
+                GROUP BY c.PhoneNumber, c.Name
             """
             cursor.execute(query)
-            clients = cursor.fetchall()
+            users = cursor.fetchall()
 
             # Prepare the phone numbers JSON with names and phone numbers
             phone_numbers_json = []
-            for client in clients:
-                phone_number = client[0]  # phone_number is the first column
-                name = client[1]  # display_name is the second column
-                
+            for user in users:
+                phone_number = user[0]  # PhoneNumber is the first column
+                name = user[1]  # display_name is the second column
+
                 if name and name != phone_number:
                     phone_numbers_json.append({
                         "phone_number": phone_number,
@@ -188,15 +189,16 @@ def get_unique_phone_numbers():
                     phone_numbers_json.append({
                         "phone_number": phone_number
                     })
-            
+
             # Prepare the last conversation dates
             last_conversation_dates = {
-                client[0]: client[2].strftime("%Y-%m-%d") if client[2] else None
-                for client in clients
+                user[0]: user[2].strftime("%Y-%m-%d") 
+                if user[2] else None
+                for user in users
             }
-            
+
         return jsonify({
-            "phoneNumbersJson": phone_numbers_json, 
+            "phoneNumbersJson": phone_numbers_json,
             "totalPhoneNumbers": len(phone_numbers_json),
             "lastConversationDates": last_conversation_dates  # Adds the last conversation dates
         }), 200
