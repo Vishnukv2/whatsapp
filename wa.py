@@ -213,25 +213,25 @@ def fetch_chat_by_phone_number():
         phone_number = content.get("phone_number")
 
         if phone_number:
-            with pyodbc.connect(db_string) as conn:
+            with pyodbc.connect(db_connection_string) as conn:
                 cursor = conn.cursor()
 
                 # Get the ClientID from the tbWhatsAppClients table using the provided phone number
-                user_query = "SELECT ClientID FROM tbWhatsAppClients WHERE PhoneNumber = ?"
-                cursor.execute(user_query, phone_number)
-                user = cursor.fetchone()
+                client_query = "SELECT ClientID FROM tbWhatsAppClients WHERE PhoneNumber = ?"
+                cursor.execute(client_query, phone_number)
+                client = cursor.fetchone()
 
-                if user is None:
+                if client is None:
                     return jsonify({"error": "Phone number not found"}), 404
 
-                client_id = user.ClientID
+                client_id = client.ClientID
 
-                # Fetch the messages for the provided ClientID, ordered by Date ASC
+                # Fetch the chat messages for the provided phone number using the ClientID, ordered by date ASC
                 message_query = """
-                    SELECT UserInput, BotResponse, Date, ClientID
-                    FROM tbWhatsappChat
+                    SELECT User_input, Bot_response, [Date]
+                    FROM tbWhatsAppChat
                     WHERE ClientID = ?
-                    ORDER BY Date ASC
+                    ORDER BY [Date] ASC
                 """
                 cursor.execute(message_query, client_id)
 
@@ -242,14 +242,14 @@ def fetch_chat_by_phone_number():
                     date = timestamp.strftime("%d-%m-%Y")  # Group by date (e.g., "03-09-2024")
                     time = timestamp.strftime("%I:%M %p")  # Time format (e.g., "9:15 AM")
 
-                    # Prepare message format based on ClientID
+                    # Prepare message format based on whether the user_input exists (Client vs Bot)
                     message = {
                         "time": time,
-                        "bot_response": row.BotResponse
+                        "bot_response": row.Bot_response
                     }
-
-                    if row.ClientID != -1:
-                        message["user_input"] = row.UserInput
+                    
+                    if row.User_input:
+                        message["user_input"] = row.User_input
 
                     # Append the message to the correct date group
                     if date not in chats_by_date:
