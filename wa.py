@@ -160,14 +160,14 @@ def get_db_connection():
 @app.route("/api/dashboard", methods=["GET"])
 def get_unique_phone_numbers():
     try:
-        with pyodbc.connect(db_string) as conn:
+        with pyodbc.connect(db_connection_string) as conn:
             cursor = conn.cursor()
             query = """
                 SELECT c.phone_number, 
                        ISNULL(c.name, c.phone_number) AS display_name,
                        MAX(m.Date) AS last_conversation_date
                 FROM tbWhatsAppClients c
-                LEFT JOIN tbWhatsAppChat m ON c.id = m.user_id
+                LEFT JOIN tbWhatsAppChat m ON c.ClientId = m.ClientId
                 GROUP BY c.phone_number, c.name
             """
             cursor.execute(query)
