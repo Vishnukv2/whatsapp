@@ -506,16 +506,17 @@ def webhook_get():
     else:
         logging.info("MISSING_PARAMETER")
         return jsonify({"status": "error", "message": "Missing parameters"}), 400
-
+        
 @app.route("/webhook1", methods=["POST"])
 @signature_required
-def webhook_post():
+def webhook1_post():
     body = request.get_json()
+    logging.info(f"Webhook 1 received request: {body}")
     if (body.get("entry", [{}])[0]
         .get("changes", [{}])[0]
         .get("value", {})
         .get("statuses")):
-        logging.info("Received a WhatsApp status update.")
+        logging.info("Webhook 1: Received a WhatsApp status update.")
         return jsonify({"status": "ok"}), 200
     try:
         if is_valid_whatsapp_message(body):
@@ -524,8 +525,9 @@ def webhook_post():
         else:
             return jsonify({"status": "error", "message": "Not a WhatsApp API event"}), 404
     except json.JSONDecodeError:
-        logging.error("Failed to decode JSON")
+        logging.error("Webhook 1: Failed to decode JSON")
         return jsonify({"status": "error", "message": "Invalid JSON provided"}), 400
+
 
 import subprocess
 import threading
