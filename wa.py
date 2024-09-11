@@ -157,40 +157,52 @@ def get_db_connection():
         print(f"Error connecting to database: {e}")
         return None
         
-@app.route('/dashboard', methods=['GET'])
-def dashboard():
+@app.route("/api/dashboard", methods=["GET"])
+def get_unique_phone_numbers():
     try:
-        conn = get_db_connection()
-        if conn is None:
-            return jsonify({"error": "Database connection failed"}), 500
+        with pyodbc.connect(db_connection_string) as conn:
+            cursor = conn.cursor()
+            query = """
+                SELECT c.phone_number, 
+                       ISNULL(c.name, c.phone_number) AS display_name,
+                       MAX(m.Date) AS last_conversation_date
+                FROM tbWhatsAppClients c
+                LEFT JOIN tbWhatsAppChat m ON c.id = m.user_id
+                GROUP BY c.phone_number, c.name
+            """
+            cursor.execute(query)
+            clients = cursor.fetchall()
 
-        cursor = conn.cursor()
-
-        # SQL query to fetch records from dbo.Wayschat_hist table
-        cursor.execute("""
-            SELECT phone_number
-            FROM dbo.Wayschat_hist
-            WHERE phone_number IS NOT NULL
-            ORDER BY phone_number, Date DESC
-        """)
-        rows = cursor.fetchall()
-
-        # Group by phone_number and extract unique phone numbers
-        phone_numbers = set(row.phone_number for row in rows)
-
-        total_phone_numbers = len(phone_numbers)
-        phone_numbers_json = json.dumps(list(phone_numbers))
-
+            # Prepare the phone numbers JSON with names and phone numbers
+            phone_numbers_json = []
+            for client in clients:
+                phone_number = client[0]  # phone_number is the first column
+                name = client[1]  # display_name is the second column
+                
+                if name and name != phone_number:
+                    phone_numbers_json.append({
+                        "phone_number": phone_number,
+                        "name": name
+                    })
+                else:
+                    phone_numbers_json.append({
+                        "phone_number": phone_number
+                    })
+            
+            # Prepare the last conversation dates
+            last_conversation_dates = {
+                client[0]: client[2].strftime("%Y-%m-%d") if client[2] else None
+                for client in clients
+            }
+            
         return jsonify({
-            "phoneNumbersJson": phone_numbers_json,
-            "totalPhoneNumbers": total_phone_numbers
-        })
-
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-    finally:
-        if conn:
-            conn.close()
+            "phoneNumbersJson": phone_numbers_json, 
+            "totalPhoneNumbers": len(phone_numbers_json),
+            "lastConversationDates": last_conversation_dates  # Adds the last conversation dates
+        }), 200
+    except pyodbc.Error as e:
+        logging.error(f"Failed to retrieve unique phone numbers: {e}")
+        return jsonify({"error": "Failed to retrieve data"}), 500
 
 @app.route('/fetchMessages', methods=['GET'])
 def fetch_messages():
