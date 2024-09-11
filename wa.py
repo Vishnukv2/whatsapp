@@ -37,7 +37,7 @@ ACCESS_TOKEN = os.getenv("access_token")
 PHONE_NUMBER_ID_1 = os.getenv("phone_number_id_1")
 PHONE_NUMBER_ID_2 = os.getenv("phone_number_id_2")
 ng=os.getenv("authtoken")
-VERSION = "v19.0"
+VERSION = "v20.0"
 # Send a custom text WhatsApp message asynchronously
 async def send_message(recipient, data):
     headers = {
@@ -490,7 +490,7 @@ def signature_required(f):
 
 # Views
 
-@app.route("/webhook1", methods=["GET"])
+@app.route("/webhook", methods=["GET"])
 def webhook_get():
     mode = request.args.get("hub.mode")
     token = request.args.get("hub.verify_token")
@@ -506,7 +506,7 @@ def webhook_get():
         logging.info("MISSING_PARAMETER")
         return jsonify({"status": "error", "message": "Missing parameters"}), 400
 
-@app.route("/webhook1", methods=["POST"])
+@app.route("/webhook", methods=["POST"])
 @signature_required
 def webhook_post():
     body = request.get_json()
