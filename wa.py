@@ -433,7 +433,7 @@ def insert_chat_history(user_input, bot_response, phone_number):
         # Insert the chat history into tbWhatsAppChat
         insert_chat_query = """
             INSERT INTO tbWhatsAppChat (ClientID, User_input, Bot_response)
-            VALUES (?, ?, ?, ?)
+            VALUES (?, ?, ?)
         """
         cursor.execute(insert_chat_query, (client_id, user_input, bot_response))        
         connection.commit()
@@ -442,6 +442,7 @@ def insert_chat_history(user_input, bot_response, phone_number):
     except Exception as e:
         logging.error(f"Error inserting chat history into DB: {e}")
         raise e
+
 
 
 def process_whatsapp_message(body):
