@@ -39,6 +39,7 @@ PHONE_NUMBER_ID_2 = os.getenv("phone_number_id_2")
 ng=os.getenv("authtoken")
 VERSION = "v20.0"
 # Send a custom text WhatsApp message asynchronously
+
 async def send_message(recipient, data):
     headers = {
         "Content-type": "application/json",
