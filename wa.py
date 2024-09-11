@@ -213,7 +213,7 @@ def fetch_chat_by_phone_number():
         phone_number = content.get("phone_number")
 
         if phone_number:
-            with pyodbc.connect(db_connection_string) as conn:
+            with pyodbc.connect(db_string) as conn:
                 cursor = conn.cursor()
 
                 # Get the ClientID from the tbWhatsAppClients table using the provided phone number
