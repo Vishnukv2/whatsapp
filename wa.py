@@ -491,7 +491,7 @@ def signature_required(f):
 
 # Views
 
-@app.route("/webhook1", methods=["GET"])
+@app.route("/Lumi", methods=["GET"])
 def webhook_get():
     mode = request.args.get("hub.mode")
     token = request.args.get("hub.verify_token")
@@ -507,7 +507,7 @@ def webhook_get():
         logging.info("MISSING_PARAMETER")
         return jsonify({"status": "error", "message": "Missing parameters"}), 400
         
-@app.route("/webhook1", methods=["POST"])
+@app.route("/Lumi", methods=["POST"])
 @signature_required
 def webhook1_post():
     body = request.get_json()
