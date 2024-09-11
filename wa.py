@@ -272,31 +272,44 @@ def fetch_chat_by_phone_number():
         logging.error(f"Failed to fetch chats: {e}")
         return jsonify({"error": "Failed to retrieve data"}), 500
             
-@app.route('/save_response', methods=['POST'])
-def send_message_user():
-    data = request.get_json()
-    if not data or 'text' not in data or 'recipient' not in data:
-        return jsonify({'error': 'Invalid input'}), 400
-    
-    text = data['text']
-    recipient = data['recipient']
-    
+@app.route("/api/save_response", methods=["POST"])
+def save_response():
     try:
-        conn = get_db_connection()
-        if conn is None:
-            return jsonify({'error': 'Database connection failed'}), 500
-        
-        cursor = conn.cursor()
-        cursor.execute("""
-            INSERT INTO Wayschat_hist ( Bot_response, phone_number, Date)
-            VALUES (?, ?, ?)
-        """, (text, recipient, datetime.now()))
-        
-        conn.commit()
-        return jsonify({'message': 'Message sent'}), 200
-    
-    except Exception as e:
-        return jsonify({'error': 'Internal Server Error', 'details': str(e)}), 500
+        content = request.get_json()
+        phone_number = content.get("phone_number")
+        bot_response = content.get("bot_response")
+
+        if phone_number and bot_response:
+            with pyodbc.connect(db_string) as conn:
+                cursor = conn.cursor()
+
+                # Check if the phone number exists in tbWhatsAppClients
+                client_query = "SELECT ClientID FROM tbWhatsAppClients WHERE PhoneNumber = ?"
+                cursor.execute(client_query, phone_number)
+                client = cursor.fetchone()
+
+                if client is None:
+                    return jsonify({"error": "Phone number not found"}), 404
+
+                client_id = client.ClientID
+
+                # Use a placeholder AdminID for admin messages
+                admin_id = -1  # Use -1 or another placeholder value for admin
+
+                # Insert the message with the placeholder AdminID
+                insert_query = """
+                    INSERT INTO tbWhatsAppChat (ClientID, User_input, Bot_response, [Date], AdminID)
+                    VALUES (?, 'ADMIN', ?, GETDATE(), ?)
+                """
+                cursor.execute(insert_query, client_id, bot_response, admin_id)
+                conn.commit()
+
+            return jsonify({"status": "success", "message": "Response saved successfully"}), 200
+        else:
+            return jsonify({"error": "Phone number and bot response are required"}), 400
+    except pyodbc.Error as e:
+        logging.error(f"Failed to save response: {e}")
+        return jsonify({"error": "Failed to save data"}), 500
 
 
 def log_http_response(response):
@@ -398,22 +411,38 @@ def check_guest():
         logging.error(f"Error in /check-guest endpoint: {e}")
         return jsonify({"error": str(e)}), 500
 
-def insert_chat_history(user_input, bot_response, session_id, phone_number):
+def insert_chat_history(user_input, bot_response, phone_number):
     try:
-        current_datetime = datetime.utcnow()
-        formatted_date = current_datetime.strftime("%Y-%m-%d %H:%M:%S")
         connection = pyodbc.connect(db_string)
         cursor = connection.cursor()
-        insert_query = """
-            INSERT INTO Wayschat_hist (User_input, Bot_response, Date, session_id, phone_number)
-            VALUES (?, ?, ?, ?, ?)
+
+        # Check if the phone number exists in tbWhatsAppClients
+        check_client_query = "SELECT ClientID FROM tbWhatsAppClients WHERE PhoneNumber = ?"
+        cursor.execute(check_client_query, phone_number)
+        client = cursor.fetchone()
+
+        # If client doesn't exist, insert the phone number into tbWhatsAppClients
+        if client is None:
+            insert_client_query = "INSERT INTO tbWhatsAppClients (PhoneNumber) OUTPUT INSERTED.ClientID VALUES (?)"
+            cursor.execute(insert_client_query, phone_number)
+            client_id = cursor.fetchone()[0]  # Get the ClientID of the newly inserted client
+        else:
+            client_id = client[0]  # Get the ClientID if the client exists
+
+        # Insert the chat history into tbWhatsAppChat
+        insert_chat_query = """
+            INSERT INTO tbWhatsAppChat (ClientID, User_input, Bot_response, [Date])
+            VALUES (?, ?, ?, ?)
         """
-        cursor.execute(insert_query, (user_input, bot_response, formatted_date, session_id, phone_number))
+        cursor.execute(insert_chat_query, (client_id, user_input, bot_response, formatted_date))
+        
         connection.commit()
         connection.close()
+
     except Exception as e:
         logging.error(f"Error inserting chat history into DB: {e}")
         raise e
+
 
 def process_whatsapp_message(body):
     wa_id = body["entry"][0]["changes"][0]["value"]["contacts"][0]["wa_id"]
