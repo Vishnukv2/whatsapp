@@ -458,7 +458,7 @@ def process_whatsapp_message(body):
     response = generate_response(sender_number, message_body)
     data = get_text_message_input(sender_number, response)
     send_messages(data)
-    insert_chat_history(message_body, response, session_ids[sender_number], sender_number)
+    #insert_chat_history(message_body, response, session_ids[sender_number], sender_number)
 
 def is_valid_whatsapp_message(body):
     return (body.get("object")
