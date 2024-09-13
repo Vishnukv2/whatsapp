@@ -337,6 +337,119 @@ def update_name():
         logging.error(f"Failed to update name: {e}")
         return jsonify({"error": "Failed to update name"}), 500
 
+@app.route("/api/latest_chat", methods=["GET"])
+def get_latest_chat():
+    try:
+        with pyodbc.connect(db_string) as conn:
+            cursor = conn.cursor()
+            
+            # Get the phone number with the most recent interaction (latest last_conversation_date)
+            query = """
+                SELECT TOP 1 c.PhoneNumber AS phone_number
+                FROM tbWhatsAppClients c
+                LEFT JOIN tbWhatsAppChat ch ON c.ClientID = ch.ClientID
+                GROUP BY c.PhoneNumber
+                ORDER BY MAX(ch.[Date]) DESC
+            """
+            cursor.execute(query)
+            latest_user = cursor.fetchone()
+
+            if latest_user is None:
+                return jsonify({"error": "No chats found"}), 404
+            
+            latest_phone_number = latest_user.phone_number
+
+            # Fetch the entire chat history for this phone number
+            chat_query = """
+                SELECT User_input, Bot_response, [Date]
+                FROM tbWhatsAppChat
+                WHERE ClientID = (SELECT ClientID FROM tbWhatsAppClients WHERE PhoneNumber = ?)
+                ORDER BY [Date] ASC
+            """
+            cursor.execute(chat_query, latest_phone_number)
+            chat_history = cursor.fetchall()
+
+            if not chat_history:
+                return jsonify({"error": "No chat history found for this user"}), 404
+
+            # Format the chat history by date and time
+            chats_by_date = {}
+            for chat in chat_history:
+                timestamp = chat.Date
+                date = timestamp.strftime("%d-%m-%Y")  # Group by date (e.g., "09-09-2024")
+                time = timestamp.strftime("%I:%M %p")  # Time format (e.g., "9:15 AM")
+
+                message = {
+                    "time": time,
+                    "bot_response": chat.Bot_response
+                }
+
+                if chat.User_input:
+                    message["user_input"] = chat.User_input
+
+                if date not in chats_by_date:
+                    chats_by_date[date] = []
+
+                chats_by_date[date].append(message)
+
+            return jsonify({
+                "phone_number": latest_phone_number,
+                "chat_history": chats_by_date
+            }), 200
+    except pyodbc.Error as e:
+        logging.error(f"Failed to retrieve chat history: {e}")
+        return jsonify({"error": "Failed to retrieve data"}), 500
+
+@app.route("/api/search_contact", methods=["GET"])
+def search_contact():
+    try:
+        search_term = request.args.get('query', '').strip()
+
+        if not search_term:
+            return jsonify({"error": "Search term is required"}), 400
+
+        with pyodbc.connect(db_string) as conn:
+            cursor = conn.cursor()
+
+            # Query to search for users by name or phone number
+            search_query = """
+                SELECT c.PhoneNumber AS phone_number,
+                       ISNULL(c.Name, c.PhoneNumber) AS display_name,
+                       MAX(ch.[Date]) AS last_conversation_date
+                FROM tbWhatsAppClients c
+                LEFT JOIN tbWhatsAppChat ch ON c.ClientID = ch.ClientID
+                WHERE c.PhoneNumber LIKE ? OR c.Name LIKE ?
+                GROUP BY c.PhoneNumber, c.Name
+                ORDER BY MAX(ch.[Date]) DESC
+            """
+            # Using the search term for both name and phone number search
+            search_term_with_wildcards = f"%{search_term}%"
+            cursor.execute(search_query, (search_term_with_wildcards, search_term_with_wildcards))
+            search_results = cursor.fetchall()
+
+            if not search_results:
+                return jsonify({"message": "No contacts found"}), 404
+
+            contacts_json = []
+            for result in search_results:
+                contact_info = {
+                    "phone_number": result.phone_number,
+                    "last_conversation_date": result.last_conversation_date.strftime("%Y-%m-%d") if result.last_conversation_date else None
+                }
+
+                if result.display_name != result.phone_number:
+                    contact_info["name"] = result.display_name
+
+                contacts_json.append(contact_info)
+
+            return jsonify({
+                "searchResults": contacts_json,
+                "totalResults": len(contacts_json)
+            }), 200
+
+    except pyodbc.Error as e:
+        logging.error(f"Failed to search contacts: {e}")
+        return jsonify({"error": "Failed to search data"}), 500
 
 
 
