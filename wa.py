@@ -229,7 +229,7 @@ def fetch_chat_by_phone_number():
 
                 # Fetch the chat messages for the provided phone number using the ClientID, ordered by date ASC
                 message_query = """
-                    SELECT User_input, Bot_response, [Date], ClientID
+                    SELECT User_input, Bot_response, [Date], IsAdminMessage
                     FROM tbWhatsAppChat
                     WHERE ClientID = ?
                     ORDER BY [Date] ASC
@@ -243,14 +243,13 @@ def fetch_chat_by_phone_number():
                     date = timestamp.strftime("%d-%m-%Y")  # Group by date (e.g., "03-09-2024")
                     time = timestamp.strftime("%I:%M %p")  # Time format (e.g., "9:15 AM")
 
-                    # Prepare message format
+                    # Prepare message format based on whether it's an admin message
                     message = {
                         "time": time,
                         "bot_response": row.Bot_response
                     }
-
-                    # Append user_input if it's not from the admin
-                    if row.User_input != 'ADMIN' and row.ClientID != -1:
+                    
+                    if not row.IsAdminMessage:
                         message["user_input"] = row.User_input
 
                     # Append the message to the correct date group
@@ -274,6 +273,7 @@ def fetch_chat_by_phone_number():
         logging.error(f"Failed to fetch chats: {e}")
         return jsonify({"error": "Failed to retrieve data"}), 500
 
+
             
 @app.route("/api/save_response", methods=["POST"])
 def save_response():
@@ -286,15 +286,22 @@ def save_response():
             with pyodbc.connect(db_string) as conn:
                 cursor = conn.cursor()
 
-                # Use -1 as the ClientID for admin messages
-                admin_client_id = -1
+                # Get ClientID based on phone_number if needed
+                client_query = "SELECT ClientID FROM tbWhatsAppClients WHERE PhoneNumber = ?"
+                cursor.execute(client_query, phone_number)
+                client = cursor.fetchone()
 
-                # Insert the message into tbWhatsAppChat
+                if client:
+                    client_id = client.ClientID
+                else:
+                    return jsonify({"error": "Phone number not found"}), 404
+
+                # Insert the message with IsAdminMessage flag set to 1
                 insert_query = """
-                    INSERT INTO tbWhatsAppChat (ClientID, User_input, Bot_response, [Date])
-                    VALUES (?, 'ADMIN', ?, GETDATE())
+                    INSERT INTO tbWhatsAppChat (ClientID, User_input, Bot_response, [Date], IsAdminMessage)
+                    VALUES (?, 'ADMIN', ?, GETDATE(), 1)
                 """
-                cursor.execute(insert_query, admin_client_id, bot_response)
+                cursor.execute(insert_query, client_id, bot_response)
                 conn.commit()
 
             return jsonify({"status": "success", "message": "Response saved successfully"}), 200
@@ -303,6 +310,7 @@ def save_response():
     except pyodbc.Error as e:
         logging.error(f"Failed to save response: {e}")
         return jsonify({"error": "Failed to save data"}), 500
+
 
 
 
