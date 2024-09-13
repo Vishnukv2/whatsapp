@@ -285,12 +285,16 @@ def save_response():
         if phone_number and bot_response:
             with pyodbc.connect(db_string) as conn:
                 cursor = conn.cursor()
-                client_id = -1  
-                insert_query = """
+
+                # Use a placeholder user ID for admin messages
+                admin_user_id = -1  # Use -1 or another placeholder value
+
+                # Insert the message with the placeholder user ID
+                query = """
                     INSERT INTO tbWhatsAppChat (ClientID, User_input, Bot_response, [Date])
-                    VALUES (?, 'ADMIN', ?, GETDATE())
+                    VALUES (?, 'ADMIN', ?, ?)
                 """
-                cursor.execute(insert_query, client_id, bot_response)
+                cursor.execute(query, admin_user_id, bot_response, phone_number)
                 conn.commit()
 
             return jsonify({"status": "success", "message": "Response saved successfully"}), 200
