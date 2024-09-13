@@ -163,45 +163,47 @@ def get_unique_phone_numbers():
     try:
         with pyodbc.connect(db_string) as conn:
             cursor = conn.cursor()
-
-            # Fetch unique phone numbers and their associated names from tbWhatsAppClients
             query = """
-                SELECT c.PhoneNumber, ISNULL(c.Name, c.PhoneNumber) AS display_name,
-                       MAX(m.Date) AS last_conversation_date
+                SELECT c.PhoneNumber AS phone_number, 
+                       ISNULL(c.Name, c.PhoneNumber) AS display_name,
+                       MAX(ch.[Date]) AS last_conversation_date,
+                       (SELECT TOP 1 Bot_response
+                        FROM tbWhatsAppChat
+                        WHERE tbWhatsAppChat.ClientID = c.ClientID
+                        AND tbWhatsAppChat.Bot_response IS NOT NULL
+                        ORDER BY [Date] DESC) AS last_bot_response
                 FROM tbWhatsAppClients c
-                LEFT JOIN tbWhatsappChat m ON c.ClientID = m.ClientID
-                GROUP BY c.PhoneNumber, c.Name
+                LEFT JOIN tbWhatsAppChat ch ON c.ClientID = ch.ClientID
+                GROUP BY c.PhoneNumber, c.Name, c.ClientID
             """
             cursor.execute(query)
             users = cursor.fetchall()
 
-            # Prepare the phone numbers JSON with names and phone numbers
             phone_numbers_json = []
+            last_conversation_dates = {}
+
             for user in users:
-                phone_number = user[0]  # PhoneNumber is the first column
-                name = user[1]  # display_name is the second column
-
-                if name and name != phone_number:
-                    phone_numbers_json.append({
-                        "phone_number": phone_number,
-                        "name": name
-                    })
-                else:
-                    phone_numbers_json.append({
-                        "phone_number": phone_number
-                    })
-
-            # Prepare the last conversation dates
-            last_conversation_dates = {
-                user[0]: user[2].strftime("%Y-%m-%d") 
-                if user[2] else None
-                for user in users
-            }
+                # Store the last conversation date in dd-mm format (without the year)
+                last_conversation_dates[user.phone_number] = user.last_conversation_date.strftime("%d-%m") if user.last_conversation_date else None
+                
+                user_info = {
+                    "phone_number": user.phone_number,
+                    "last_bot_response": user.last_bot_response
+                }
+                
+                # Include name only if it's not null
+                if user.display_name != user.phone_number:
+                    user_info["name"] = user.display_name
+                
+                phone_numbers_json.append(user_info)
+            
+            # Sort the phone numbers by last conversation date (latest first)
+            sorted_phone_numbers_json = sorted(phone_numbers_json, key=lambda x: last_conversation_dates.get(x['phone_number'], ""), reverse=True)
 
         return jsonify({
-            "phoneNumbersJson": phone_numbers_json,
-            "totalPhoneNumbers": len(phone_numbers_json),
-            "lastConversationDates": last_conversation_dates  # Adds the last conversation dates
+            "lastConversationDates": dict(sorted(last_conversation_dates.items(), key=lambda item: item[1], reverse=True)),
+            "phoneNumbersJson": sorted_phone_numbers_json,
+            "totalPhoneNumbers": len(phone_numbers_json)
         }), 200
     except pyodbc.Error as e:
         logging.error(f"Failed to retrieve unique phone numbers: {e}")
