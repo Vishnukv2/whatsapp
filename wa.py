@@ -286,15 +286,15 @@ def save_response():
             with pyodbc.connect(db_string) as conn:
                 cursor = conn.cursor()
 
-                # Use a placeholder user ID for admin messages
-                admin_user_id = -1  # Use -1 or another placeholder value
+                # Use -1 as the ClientID for admin messages
+                admin_client_id = -1
 
-                # Insert the message with the placeholder user ID
-                query = """
+                # Insert the message into tbWhatsAppChat
+                insert_query = """
                     INSERT INTO tbWhatsAppChat (ClientID, User_input, Bot_response, [Date])
                     VALUES (?, 'ADMIN', ?, GETDATE())
                 """
-                cursor.execute(query, admin_user_id, bot_response, phone_number)
+                cursor.execute(insert_query, admin_client_id, bot_response)
                 conn.commit()
 
             return jsonify({"status": "success", "message": "Response saved successfully"}), 200
@@ -303,6 +303,7 @@ def save_response():
     except pyodbc.Error as e:
         logging.error(f"Failed to save response: {e}")
         return jsonify({"error": "Failed to save data"}), 500
+
 
 
 
