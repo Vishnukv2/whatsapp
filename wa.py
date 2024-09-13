@@ -292,7 +292,7 @@ def save_response():
                 # Insert the message with the placeholder user ID
                 query = """
                     INSERT INTO tbWhatsAppChat (ClientID, User_input, Bot_response, [Date])
-                    VALUES (?, 'ADMIN', ?, ?)
+                    VALUES (?, 'ADMIN', ?, GETDATE())
                 """
                 cursor.execute(query, admin_user_id, bot_response, phone_number)
                 conn.commit()
