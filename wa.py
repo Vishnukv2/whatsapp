@@ -229,7 +229,7 @@ def fetch_chat_by_phone_number():
 
                 # Fetch the chat messages for the provided phone number using the ClientID, ordered by date ASC
                 message_query = """
-                    SELECT User_input, Bot_response, [Date]
+                    SELECT User_input, Bot_response, [Date], ClientID
                     FROM tbWhatsAppChat
                     WHERE ClientID = ?
                     ORDER BY [Date] ASC
@@ -243,13 +243,14 @@ def fetch_chat_by_phone_number():
                     date = timestamp.strftime("%d-%m-%Y")  # Group by date (e.g., "03-09-2024")
                     time = timestamp.strftime("%I:%M %p")  # Time format (e.g., "9:15 AM")
 
-                    # Prepare message format based on whether the user_input exists (Client vs Bot)
+                    # Prepare message format
                     message = {
                         "time": time,
                         "bot_response": row.Bot_response
                     }
-                    
-                    if row.ClientID!= -1:
+
+                    # Append user_input if it's not from the admin
+                    if row.User_input != 'ADMIN' and row.ClientID != -1:
                         message["user_input"] = row.User_input
 
                     # Append the message to the correct date group
@@ -272,6 +273,7 @@ def fetch_chat_by_phone_number():
     except pyodbc.Error as e:
         logging.error(f"Failed to fetch chats: {e}")
         return jsonify({"error": "Failed to retrieve data"}), 500
+
             
 @app.route("/api/save_response", methods=["POST"])
 def save_response():
