@@ -432,9 +432,12 @@ def search_contact():
 
             contacts_json = []
             for result in search_results:
+                # Convert the date to "dd-mm" format
+                last_conversation_date = result.last_conversation_date.strftime("%d-%m") if result.last_conversation_date else None
+
                 contact_info = {
                     "phone_number": result.phone_number,
-                    "last_conversation_date": result.last_conversation_date.strftime("%Y-%m-%d") if result.last_conversation_date else None
+                    "last_conversation_date": last_conversation_date
                 }
 
                 if result.display_name != result.phone_number:
