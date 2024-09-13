@@ -322,7 +322,7 @@ def update_name():
         if not phone_number or not name:
             return jsonify({"error": "Phone number and name are required"}), 400
 
-        with pyodbc.connect(db_connection_string) as conn:
+        with pyodbc.connect(db_string) as conn:
             cursor = conn.cursor()
             query = "UPDATE tbWhatsAppClients SET Name = ? WHERE PhoneNumber = ?"
             cursor.execute(query, name, phone_number)
