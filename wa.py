@@ -249,7 +249,7 @@ def fetch_chat_by_phone_number():
                         "bot_response": row.Bot_response
                     }
                     
-                    if row.User_input:
+                    if row.ClientID!= -1:
                         message["user_input"] = row.User_input
 
                     # Append the message to the correct date group
@@ -283,26 +283,12 @@ def save_response():
         if phone_number and bot_response:
             with pyodbc.connect(db_string) as conn:
                 cursor = conn.cursor()
-
-                # Check if the phone number exists in tbWhatsAppClients
-                client_query = "SELECT ClientID FROM tbWhatsAppClients WHERE PhoneNumber = ?"
-                cursor.execute(client_query, phone_number)
-                client = cursor.fetchone()
-
-                if client is None:
-                    return jsonify({"error": "Phone number not found"}), 404
-
-                client_id = client.ClientID
-
-                # Use a placeholder AdminID for admin messages
-                admin_id = -1  # Use -1 or another placeholder value for admin
-
-                # Insert the message with the placeholder AdminID
+                client_id = -1  
                 insert_query = """
-                    INSERT INTO tbWhatsAppChat (ClientID, User_input, Bot_response, [Date], AdminID)
-                    VALUES (?, 'ADMIN', ?, GETDATE(), ?)
+                    INSERT INTO tbWhatsAppChat (ClientID, User_input, Bot_response, [Date])
+                    VALUES (?, 'ADMIN', ?, GETDATE())
                 """
-                cursor.execute(insert_query, client_id, bot_response, admin_id)
+                cursor.execute(insert_query, client_id, bot_response)
                 conn.commit()
 
             return jsonify({"status": "success", "message": "Response saved successfully"}), 200
@@ -311,6 +297,7 @@ def save_response():
     except pyodbc.Error as e:
         logging.error(f"Failed to save response: {e}")
         return jsonify({"error": "Failed to save data"}), 500
+
 
 
 def log_http_response(response):
