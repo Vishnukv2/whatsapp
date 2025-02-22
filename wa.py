@@ -18,14 +18,14 @@ from datetime import datetime, timedelta
 import pyodbc
 db_connection_string = (
     "Driver={ODBC Driver 17 for SQL Server};"
-    "Server=103.239.89.99,21433;"
+    "Server=103.239.89.100,21433;"
     "Database=HospinsApp_DB_AE;"
     "UID=AE_Hospins_usr;"
     "PWD=7LNw37*Qm;"
 )
 db_string = (
     "Driver={ODBC Driver 17 for SQL Server};"
-    "Server=103.239.89.99,21433;"
+    "Server=103.239.89.100,21433;"
     "Database=PMO360_DB;"
     "UID=PMOlogbook_Usr;"
     "PWD=aPMO86#iaxh;"
